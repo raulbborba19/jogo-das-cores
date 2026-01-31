@@ -1,1 +1,198 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guess the RGB</title>
+    <style>
+        body, html { margin: 0; padding: 0; height: 100%; font-family: sans-serif; overflow: hidden; }
+        
+        /* Tela Inicial */
+        #tela-inicial {
+            background-color: black;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
 
+        #btn-comecar {
+            background-color: white;
+            color: black;
+            padding: 20px 50px;
+            font-size: 24px;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        /* Tela do Jogo */
+        #tela-jogo {
+            display: none;
+            height: 100vh;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.5s;
+        }
+
+        .container-input {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 30px;
+            border-radius: 10px;
+            display: flex;
+            gap: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+
+        .coluna { display: flex; flex-direction: column; align-items: center; }
+        
+        .coluna label { font-size: 30px; font-weight: bold; margin-bottom: 10px; }
+
+        .coluna input {
+            width: 60px;
+            height: 50px;
+            font-size: 24px;
+            text-align: center;
+            text-transform: uppercase;
+            border: 2px solid #333;
+        }
+
+        .feedback { margin-top: 10px; font-weight: bold; min-height: 20px; }
+        
+        #status-chances {
+            position: absolute;
+            top: 20px;
+            background: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        #btn-chutar {
+            margin-top: 20px;
+            padding: 10px 30px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="tela-inicial">
+        <button id="btn-comecar">COMEÇAR</button>
+    </div>
+
+    <div id="tela-jogo">
+        <div id="status-chances">Chances restantes: <span id="chances-num">10</span></div>
+
+        <div class="container-input">
+            <div class="coluna">
+                <label>R</label>
+                <input type="text" id="input-r" maxlength="2" placeholder="00">
+                <div id="feed-r" class="feedback"></div>
+            </div>
+            <div class="coluna">
+                <label>G</label>
+                <input type="text" id="input-g" maxlength="2" placeholder="00">
+                <div id="feed-g" class="feedback"></div>
+            </div>
+            <div class="coluna">
+                <label>B</label>
+                <input type="text" id="input-b" maxlength="2" placeholder="00">
+                <div id="feed-b" class="feedback"></div>
+            </div>
+        </div>
+        <button id="btn-chutar">CHUTAR!</button>
+    </div>
+
+    <script>
+        let corAlvo = { r: '', g: '', b: '' };
+        let acertouR = false, acertouG = false, acertouB = false;
+        let chances = 10;
+
+        const btnComecar = document.getElementById('btn-comecar');
+        const btnChutar = document.getElementById('btn-chutar');
+        const telaInicial = document.getElementById('tela-inicial');
+        const telaJogo = document.getElementById('tela-jogo');
+
+        // Gera cor aleatória e inicia jogo
+        btnComecar.addEventListener('click', () => {
+            corAlvo.r = Math.floor(Math.random() * 256).toString(16).padStart(2, '0').toUpperCase();
+            corAlvo.g = Math.floor(Math.random() * 256).toString(16).padStart(2, '0').toUpperCase();
+            corAlvo.b = Math.floor(Math.random() * 256).toString(16).padStart(2, '0').toUpperCase();
+
+            telaInicial.style.display = 'none';
+            telaJogo.style.display = 'flex';
+            telaJogo.style.backgroundColor = `#${corAlvo.r}${corAlvo.g}${corAlvo.b}`;
+            
+            console.log("Resposta para debug:", corAlvo); // Remova isso se quiser um desafio real!
+        });
+
+        btnChutar.addEventListener('click', () => {
+            if (chances <= 0) return;
+
+            const chuteR = document.getElementById('input-r').value.toUpperCase();
+            const chuteG = document.getElementById('input-g').value.toUpperCase();
+            const chuteB = document.getElementById('input-b').value.toUpperCase();
+
+            verificar('r', chuteR, corAlvo.r, 'feed-r');
+            verificar('g', chuteG, corAlvo.g, 'feed-g');
+            verificar('b', chuteB, corAlvo.b, 'feed-b');
+
+            chances--;
+            document.getElementById('chances-num').innerText = chances;
+
+            if (acertouR && acertouG && acertouB) {
+                alert("Parabéns! Você dominou as cores!");
+                location.reload();
+            } else if (chances <= 0) {
+                alert("Game Over! A cor era: #" + corAlvo.r + corAlvo.g + corAlvo.b);
+                location.reload();
+            }
+        });
+
+        function verificar(canal, chute, alvo, idFeed) {
+            const feedElement = document.getElementById(idFeed);
+            const inputElement = document.getElementById(`input-${canal}`);
+            
+            // Se já acertou esse canal, não faz nada
+            if ((canal === 'r' && acertouR) || (canal === 'g' && acertouG) || (canal === 'b' && acertouB)) return;
+
+            // Converter Hex para Decimal para comparar "maior/menor"
+            const valChute = parseInt(chute, 16);
+            const valAlvo = parseInt(alvo, 16);
+
+            if (isNaN(valChute)) {
+                feedElement.innerText = "??";
+                return;
+            }
+
+            if (valChute === valAlvo) {
+                feedElement.innerText = "ACERTOU!";
+                feedElement.style.color = "green";
+                inputElement.disabled = true;
+                marcarAcerto(canal);
+            } else if (valChute > valAlvo) {
+                feedElement.innerText = "MENOS";
+                feedElement.style.color = "red";
+            } else {
+                feedElement.innerText = "MAIS";
+                feedElement.style.color = "blue";
+            }
+        }
+
+        function marcarAcerto(canal) {
+            if (canal === 'r') acertouR = true;
+            if (canal === 'g') acertouG = true;
+            if (canal === 'b') acertouB = true;
+
+            // Regra: ganhar 3 chances extras
+            chances += 3;
+            document.getElementById('chances-num').innerText = chances;
+        }
+    </script>
+</body>
+</html>
