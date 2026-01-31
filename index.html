@@ -3,201 +3,221 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Color Quest: RGB Challenge</title>
+    <title>RGB Saga: The Color Quest</title>
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Courier New', Courier, monospace; overflow: hidden; background: #000; }
+        :root { --r: #ff4d4d; --g: #2ecc71; --b: #3498db; --cyan: #00ffff; --magenta: #ff00ff; --yellow: #ffff00; }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; background: #000; color: white; }
         
-        /* Telas */
-        .tela { display: none; height: 100vh; width: 100vw; position: absolute; top: 0; left: 0; flex-direction: column; align-items: center; justify-content: center; }
-        #tela-inicial { display: flex; }
+        .tela { display: none; height: 100vh; width: 100vw; position: absolute; flex-direction: column; align-items: center; justify-content: center; }
+        #tela-inicial { display: flex; background: #000; }
 
-        /* Menu */
-        #btn-comecar { background: white; color: black; padding: 20px 50px; font-size: 24px; font-weight: bold; border: none; cursor: pointer; }
+        /* Estilo dos Personagens CSS */
+        .char-css { width: 40px; height: 40px; border-radius: 10px 10px 5px 5px; position: relative; border: 2px solid #000; }
+        .char-css::before, .char-css::after { content: ''; position: absolute; background: #000; width: 6px; height: 6px; border-radius: 50%; top: 10px; }
+        .char-css::before { left: 8px; } .char-css::after { right: 8px; }
+        
+        /* Vilões da Tela Inicial */
+        .vilao { position: absolute; width: 60px; height: 60px; border-radius: 50%; border: 3px solid #000; animation: bounce 2s infinite; }
+        .v-cyan { background: var(--cyan); top: 20%; left: 20%; }
+        .v-magenta { background: var(--magenta); top: 20%; right: 20%; }
+        .v-yellow { background: var(--yellow); bottom: 20%; left: 50%; transform: translateX(-50%); }
+
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+
+        #btn-comecar { background: white; color: black; padding: 20px 50px; font-size: 24px; font-weight: bold; border: none; cursor: pointer; z-index: 10; border-radius: 5px; }
 
         /* Jogo Principal */
-        .container-input { background: rgba(255, 255, 255, 0.9); padding: 30px; border-radius: 10px; display: flex; gap: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); z-index: 10; }
-        .coluna { display: flex; flex-direction: column; align-items: center; }
-        .coluna input { width: 60px; height: 50px; font-size: 24px; text-align: center; text-transform: uppercase; }
-        .feedback { margin-top: 10px; font-weight: bold; height: 20px; text-shadow: 1px 1px 1px #fff; }
-        #status-chances { position: absolute; top: 20px; background: white; padding: 10px 20px; border-radius: 20px; font-weight: bold; z-index: 10; }
-
-        /* Personagens e Diálogo */
-        .personagem { position: absolute; bottom: 20px; width: 150px; display: none; z-index: 20; }
-        #char-R { left: 50px; } #char-G { left: 40%; } #char-B { right: 50px; }
+        .container-input { background: rgba(255, 255, 255, 0.95); padding: 40px 30px 20px; border-radius: 15px; display: flex; gap: 30px; position: relative; margin-top: 50px; }
+        .coluna { display: flex; flex-direction: column; align-items: center; position: relative; color: #333; }
+        .coluna input { width: 65px; height: 50px; font-size: 24px; text-align: center; border: 2px solid #333; border-radius: 8px; }
         
-        .balao-fala { position: absolute; bottom: 180px; background: white; padding: 15px; border-radius: 10px; display: none; border: 3px solid #000; z-index: 20; max-width: 250px; text-align: center; cursor: pointer; }
+        /* Personagem Sentado */
+        .char-sentado { position: absolute; top: -45px; display: none; transform: scale(0.8); }
+
+        /* Personagem Grande de Convite */
+        #char-convite { position: absolute; bottom: 50px; right: 50px; transform: scale(3); display: none; cursor: pointer; }
+        #balao { position: absolute; bottom: 200px; right: 50px; background: white; color: black; padding: 15px; border-radius: 15px; display: none; max-width: 200px; border: 3px solid #000; cursor: pointer; }
 
         /* Mini-game */
-        #tela-desafio { background: white; }
-        #canvas-desafio { background: white; border-top: 5px solid #333; cursor: none; }
+        #tela-desafio { background: white; color: black; }
+        canvas { background: #f0f0f0; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.1); cursor: none; }
+        
+        /* Tela Final */
+        #tela-vitoria { background: #000; text-align: center; }
+        .team-up { display: flex; gap: 20px; margin-bottom: 30px; }
     </style>
 </head>
 <body>
 
     <div id="tela-inicial" class="tela">
+        <div class="vilao v-cyan"></div>
+        <div class="vilao v-magenta"></div>
+        <div class="vilao v-yellow"></div>
         <button id="btn-comecar">COMEÇAR</button>
     </div>
 
     <div id="tela-jogo" class="tela">
-        <div id="status-chances">Chances: <span id="chances-num">10</span></div>
+        <div style="position: absolute; top: 20px; font-weight: bold; font-size: 20px;">CHANCES: <span id="chances-num">10</span></div>
         
         <div class="container-input">
             <div class="coluna">
+                <div id="mini-r" class="char-css char-sentado" style="background: var(--r);"></div>
                 <label>R</label>
                 <input type="text" id="input-r" maxlength="2">
                 <div id="feed-r" class="feedback"></div>
             </div>
             <div class="coluna">
+                <div id="mini-g" class="char-css char-sentado" style="background: var(--g);"></div>
                 <label>G</label>
                 <input type="text" id="input-g" maxlength="2">
                 <div id="feed-g" class="feedback"></div>
             </div>
             <div class="coluna">
+                <div id="mini-b" class="char-css char-sentado" style="background: var(--b);"></div>
                 <label>B</label>
                 <input type="text" id="input-b" maxlength="2">
                 <div id="feed-b" class="feedback"></div>
             </div>
         </div>
-        <button id="btn-chutar" style="margin-top:20px; padding:10px;">CHUTAR</button>
+        <button id="btn-chutar" style="margin-top:30px; padding:10px 40px; cursor:pointer;">VERIFICAR</button>
 
-        <img id="char-R" class="personagem" src="https://via.placeholder.com/150/FF0000/FFFFFF?text=Red" alt="R">
-        <img id="char-G" class="personagem" src="https://via.placeholder.com/150/00FF00/000000?text=Green" alt="G">
-        <img id="char-B" class="personagem" src="https://via.placeholder.com/150/0000FF/FFFFFF?text=Blue" alt="B">
-        
-        <div id="balao" class="balao-fala">Olá! Ajude-me no meu desafio para ganhar mais chances! <br><b>(Clique para entrar)</b></div>
+        <div id="char-convite" class="char-css"></div>
+        <div id="balao">Ei! Minha cor está certa! Clique aqui para o meu desafio e ganhe chutes!</div>
     </div>
 
     <div id="tela-desafio" class="tela">
-        <h2 id="titulo-desafio">DESAFIO!</h2>
+        <h2 id="msg-desafio">DEFENDA O TUBO!</h2>
         <canvas id="canvas-desafio"></canvas>
     </div>
 
+    <div id="tela-vitoria" class="tela">
+        <h1>VOCÊ VENCEU OS VILÕES!</h1>
+        <div class="team-up">
+            <div class="char-css" style="background: var(--r); transform: scale(2);"></div>
+            <div class="char-css" style="background: var(--g); transform: scale(2);"></div>
+            <div class="char-css" style="background: var(--b); transform: scale(2);"></div>
+        </div>
+        <button onclick="location.reload()" style="padding: 10px;">JOGAR NOVAMENTE</button>
+    </div>
+
     <script>
-        // Configurações Globais
-        let corAlvo = { r: '', g: '', b: '' };
-        let acertou = { r: false, g: false, b: false };
+        let corAlvo = { r:'', g:'', b:'' };
+        let status = { r: false, g: false, b: false };
         let chances = 10;
-        let corAtualDesafio = '';
+        let canalAtual = '';
+        let acertosTotais = 0;
 
-        // Elementos
-        const telas = { inicial: document.getElementById('tela-inicial'), jogo: document.getElementById('tela-jogo'), desafio: document.getElementById('tela-desafio') };
-        const canvas = document.getElementById('canvas-desafio');
-        const ctx = canvas.getContext('2d');
+        const telas = {
+            ini: document.getElementById('tela-inicial'),
+            jogo: document.getElementById('tela-jogo'),
+            desafio: document.getElementById('tela-desafio'),
+            vitoria: document.getElementById('tela-vitoria')
+        };
 
-        // Lógica de Início
         document.getElementById('btn-comecar').onclick = () => {
-            corAlvo.r = Math.floor(Math.random() * 256).toString(16).padStart(2, '0').toUpperCase();
-            corAlvo.g = Math.floor(Math.random() * 256).toString(16).padStart(2, '0').toUpperCase();
-            corAlvo.b = Math.floor(Math.random() * 256).toString(16).padStart(2, '0').toUpperCase();
-            
-            telas.inicial.style.display = 'none';
+            corAlvo = {
+                r: Math.floor(Math.random()*256).toString(16).padStart(2,'0').toUpperCase(),
+                g: Math.floor(Math.random()*256).toString(16).padStart(2,'0').toUpperCase(),
+                b: Math.floor(Math.random()*256).toString(16).padStart(2,'0').toUpperCase()
+            };
+            telas.ini.style.display = 'none';
             telas.jogo.style.display = 'flex';
             telas.jogo.style.backgroundColor = `#${corAlvo.r}${corAlvo.g}${corAlvo.b}`;
         };
 
-        // Chutar
         document.getElementById('btn-chutar').onclick = () => {
-            const inputs = { r: 'input-r', g: 'input-g', b: 'input-b' };
-            ['r', 'g', 'b'].forEach(c => {
-                if (acertou[c]) return;
-                let val = document.getElementById(inputs[c]).value.toUpperCase();
-                let feed = document.getElementById(`feed-${c}`);
-                if (parseInt(val, 16) === parseInt(corAlvo[c], 16)) {
-                    acertou[c] = true;
-                    feed.innerText = "OK!";
-                    document.getElementById(inputs[c]).disabled = true;
-                    mostrarPersonagem(c);
+            ['r','g','b'].forEach(c => {
+                if(status[c]) return;
+                let val = document.getElementById(`input-${c}`).value.toUpperCase();
+                let alvoDec = parseInt(corAlvo[c], 16);
+                let chuteDec = parseInt(val, 16);
+                
+                if(chuteDec === alvoDec) {
+                    status[c] = true;
+                    acertosTotais++;
+                    document.getElementById(`input-${c}`).disabled = true;
+                    document.getElementById(`feed-${c}`).innerText = "OK!";
+                    
+                    if(acertosTotais < 3) {
+                        liberarDesafio(c);
+                    } else {
+                        vitoriaFinal();
+                    }
                 } else {
-                    feed.innerText = parseInt(val, 16) > parseInt(corAlvo[c], 16) ? "MENOS" : "MAIS";
+                    document.getElementById(`feed-${c}`).innerText = chuteDec > alvoDec ? "MENOS" : "MAIS";
                 }
             });
             chances--;
-            atualizarChances();
+            document.getElementById('chances-num').innerText = chances;
+            if(chances <= 0 && acertosTotais < 3) { alert("Game Over!"); location.reload(); }
         };
 
-        function atualizarChances() {
-            document.getElementById('chances-num').innerText = chances;
-            if (chances <= 0) { alert("Fim de Jogo!"); location.reload(); }
-        }
-
-        function mostrarPersonagem(canal) {
-            const charId = `char-${canal.toUpperCase()}`;
-            const charImg = document.getElementById(charId);
+        function liberarDesafio(c) {
+            const cores = { r: 'var(--r)', g: 'var(--g)', b: 'var(--b)' };
+            canalAtual = c;
+            const char = document.getElementById('char-convite');
             const balao = document.getElementById('balao');
             
-            charImg.style.display = 'block';
+            char.style.background = cores[c];
+            char.style.display = 'block';
             balao.style.display = 'block';
-            balao.onclick = () => iniciarDesafio(canal);
+            
+            balao.onclick = () => iniciarMinigame(c);
         }
 
-        // MINI-GAME LÓGICA
-        let gameLoop;
-        let tubo = { x: 0, y: 0, w: 60, h: 100 };
-        let bolinhas = [];
-        let scoreDesafio = 0;
-        let speed = 2;
+        // --- LÓGICA DO MINI-GAME ---
+        const canvas = document.getElementById('canvas-desafio');
+        const ctx = canvas.getContext('2d');
+        let gameLoop, bolinhas = [], tuboX = 0, score = 0;
 
-        function iniciarDesafio(canal) {
-            corAtualDesafio = canal;
+        function iniciarMinigame(c) {
             telas.jogo.style.display = 'none';
             telas.desafio.style.display = 'flex';
+            canvas.width = 400; canvas.height = 500;
+            bolinhas = []; score = 0;
             
-            canvas.width = 400;
-            canvas.height = 500;
-            scoreDesafio = 0;
-            speed = 2;
-            bolinhas = [];
-            
-            document.getElementById('titulo-desafio').innerText = `Desafio do ${canal.toUpperCase()}`;
-            document.getElementById('titulo-desafio').style.color = canal === 'r' ? 'red' : (canal === 'g' ? 'green' : 'blue');
-
-            window.onmousemove = (e) => { tubo.x = e.clientX - canvas.offsetLeft - tubo.w/2; };
-            gameLoop = setInterval(updateMiniGame, 1000/60);
+            window.onmousemove = (e) => tuboX = e.clientX - canvas.offsetLeft - 30;
+            gameLoop = setInterval(draw, 1000/60);
         }
 
-        function updateMiniGame() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        function draw() {
+            ctx.clearRect(0,0,400,500);
+            // Tubo
+            ctx.fillStyle = canalAtual === 'r' ? '#ff4d4d' : (canalAtual === 'g' ? '#2ecc71' : '#3498db');
+            ctx.fillRect(tuboX, 450, 60, 50);
             
-            // Desenhar Tubo (Buraco em cima)
-            ctx.fillStyle = corAtualDesafio === 'r' ? 'red' : (corAtualDesafio === 'g' ? 'green' : 'blue');
-            ctx.fillRect(tubo.x, canvas.height - tubo.h, tubo.w, tubo.h);
-            ctx.clearRect(tubo.x + 5, canvas.height - tubo.h, tubo.w - 10, 10); // "Buraco"
-
-            // Gerar Bolinhas
-            if (Math.random() < 0.03) {
-                bolinhas.push({ x: Math.random() * (canvas.width-20), y: -20, r: 10 });
+            if(Math.random() < 0.03) {
+                bolinhas.push({x: Math.random()*380, y: 0});
             }
 
-            // Mover e desenhar bolinhas
-            ctx.fillStyle = corAtualDesafio === 'r' ? 'cyan' : (corAtualDesafio === 'g' ? 'magenta' : 'yellow');
-            for (let i = bolinhas.length - 1; i >= 0; i--) {
-                let b = bolinhas[i];
-                b.y += speed;
-                ctx.beginPath();
-                ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Colisão com Tubo
-                if (b.y > canvas.height - tubo.h && b.x > tubo.x && b.x < tubo.x + tubo.w) {
-                    bolinhas.splice(i, 1);
-                    scoreDesafio++;
-                    speed += 0.1;
-                } else if (b.y > canvas.height) {
+            ctx.fillStyle = canalAtual === 'r' ? 'cyan' : (canalAtual === 'g' ? 'magenta' : 'yellow');
+            bolinhas.forEach((b, i) => {
+                b.y += 3 + (score * 0.2);
+                ctx.beginPath(); ctx.arc(b.x, b.y, 10, 0, Math.PI*2); ctx.fill();
+                
+                if(b.y > 450 && b.x > tuboX && b.x < tuboX + 60) {
+                    bolinhas.splice(i,1); score++;
+                } else if (b.y > 500) {
                     finalizarDesafio();
                 }
-            }
+            });
         }
 
         function finalizarDesafio() {
             clearInterval(gameLoop);
-            alert(`Obrigado! Você coletou ${scoreDesafio} bolinhas. +${scoreDesafio} chances!`);
-            chances += scoreDesafio;
-            atualizarChances();
-            
-            // Resetar tela
-            document.getElementById('balao').style.display = 'none';
+            chances += score;
+            document.getElementById('chances-num').innerText = chances;
             telas.desafio.style.display = 'none';
             telas.jogo.style.display = 'flex';
+            document.getElementById('char-convite').style.display = 'none';
+            document.getElementById('balao').style.display = 'none';
+            // Senta o personagem na caixa
+            document.getElementById(`mini-${canalAtual}`).style.display = 'block';
+        }
+
+        function vitoriaFinal() {
+            telas.jogo.style.display = 'none';
+            telas.vitoria.style.display = 'flex';
         }
     </script>
 </body>
