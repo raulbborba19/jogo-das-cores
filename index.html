@@ -3,195 +3,201 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Guess the RGB</title>
+    <title>Color Quest: RGB Challenge</title>
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; font-family: sans-serif; overflow: hidden; }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Courier New', Courier, monospace; overflow: hidden; background: #000; }
         
-        /* Tela Inicial */
-        #tela-inicial {
-            background-color: black;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+        /* Telas */
+        .tela { display: none; height: 100vh; width: 100vw; position: absolute; top: 0; left: 0; flex-direction: column; align-items: center; justify-content: center; }
+        #tela-inicial { display: flex; }
 
-        #btn-comecar {
-            background-color: white;
-            color: black;
-            padding: 20px 50px;
-            font-size: 24px;
-            font-weight: bold;
-            border: none;
-            cursor: pointer;
-            text-transform: uppercase;
-        }
+        /* Menu */
+        #btn-comecar { background: white; color: black; padding: 20px 50px; font-size: 24px; font-weight: bold; border: none; cursor: pointer; }
 
-        /* Tela do Jogo */
-        #tela-jogo {
-            display: none;
-            height: 100vh;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            transition: background-color 0.5s;
-        }
-
-        .container-input {
-            background: rgba(255, 255, 255, 0.9);
-            padding: 30px;
-            border-radius: 10px;
-            display: flex;
-            gap: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            text-align: center;
-        }
-
+        /* Jogo Principal */
+        .container-input { background: rgba(255, 255, 255, 0.9); padding: 30px; border-radius: 10px; display: flex; gap: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); z-index: 10; }
         .coluna { display: flex; flex-direction: column; align-items: center; }
+        .coluna input { width: 60px; height: 50px; font-size: 24px; text-align: center; text-transform: uppercase; }
+        .feedback { margin-top: 10px; font-weight: bold; height: 20px; text-shadow: 1px 1px 1px #fff; }
+        #status-chances { position: absolute; top: 20px; background: white; padding: 10px 20px; border-radius: 20px; font-weight: bold; z-index: 10; }
+
+        /* Personagens e Diálogo */
+        .personagem { position: absolute; bottom: 20px; width: 150px; display: none; z-index: 20; }
+        #char-R { left: 50px; } #char-G { left: 40%; } #char-B { right: 50px; }
         
-        .coluna label { font-size: 30px; font-weight: bold; margin-bottom: 10px; }
+        .balao-fala { position: absolute; bottom: 180px; background: white; padding: 15px; border-radius: 10px; display: none; border: 3px solid #000; z-index: 20; max-width: 250px; text-align: center; cursor: pointer; }
 
-        .coluna input {
-            width: 60px;
-            height: 50px;
-            font-size: 24px;
-            text-align: center;
-            text-transform: uppercase;
-            border: 2px solid #333;
-        }
-
-        .feedback { margin-top: 10px; font-weight: bold; min-height: 20px; }
-        
-        #status-chances {
-            position: absolute;
-            top: 20px;
-            background: white;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-weight: bold;
-        }
-
-        #btn-chutar {
-            margin-top: 20px;
-            padding: 10px 30px;
-            cursor: pointer;
-            font-weight: bold;
-        }
+        /* Mini-game */
+        #tela-desafio { background: white; }
+        #canvas-desafio { background: white; border-top: 5px solid #333; cursor: none; }
     </style>
 </head>
 <body>
 
-    <div id="tela-inicial">
+    <div id="tela-inicial" class="tela">
         <button id="btn-comecar">COMEÇAR</button>
     </div>
 
-    <div id="tela-jogo">
-        <div id="status-chances">Chances restantes: <span id="chances-num">10</span></div>
-
+    <div id="tela-jogo" class="tela">
+        <div id="status-chances">Chances: <span id="chances-num">10</span></div>
+        
         <div class="container-input">
             <div class="coluna">
                 <label>R</label>
-                <input type="text" id="input-r" maxlength="2" placeholder="00">
+                <input type="text" id="input-r" maxlength="2">
                 <div id="feed-r" class="feedback"></div>
             </div>
             <div class="coluna">
                 <label>G</label>
-                <input type="text" id="input-g" maxlength="2" placeholder="00">
+                <input type="text" id="input-g" maxlength="2">
                 <div id="feed-g" class="feedback"></div>
             </div>
             <div class="coluna">
                 <label>B</label>
-                <input type="text" id="input-b" maxlength="2" placeholder="00">
+                <input type="text" id="input-b" maxlength="2">
                 <div id="feed-b" class="feedback"></div>
             </div>
         </div>
-        <button id="btn-chutar">CHUTAR!</button>
+        <button id="btn-chutar" style="margin-top:20px; padding:10px;">CHUTAR</button>
+
+        <img id="char-R" class="personagem" src="https://via.placeholder.com/150/FF0000/FFFFFF?text=Red" alt="R">
+        <img id="char-G" class="personagem" src="https://via.placeholder.com/150/00FF00/000000?text=Green" alt="G">
+        <img id="char-B" class="personagem" src="https://via.placeholder.com/150/0000FF/FFFFFF?text=Blue" alt="B">
+        
+        <div id="balao" class="balao-fala">Olá! Ajude-me no meu desafio para ganhar mais chances! <br><b>(Clique para entrar)</b></div>
+    </div>
+
+    <div id="tela-desafio" class="tela">
+        <h2 id="titulo-desafio">DESAFIO!</h2>
+        <canvas id="canvas-desafio"></canvas>
     </div>
 
     <script>
+        // Configurações Globais
         let corAlvo = { r: '', g: '', b: '' };
-        let acertouR = false, acertouG = false, acertouB = false;
+        let acertou = { r: false, g: false, b: false };
         let chances = 10;
+        let corAtualDesafio = '';
 
-        const btnComecar = document.getElementById('btn-comecar');
-        const btnChutar = document.getElementById('btn-chutar');
-        const telaInicial = document.getElementById('tela-inicial');
-        const telaJogo = document.getElementById('tela-jogo');
+        // Elementos
+        const telas = { inicial: document.getElementById('tela-inicial'), jogo: document.getElementById('tela-jogo'), desafio: document.getElementById('tela-desafio') };
+        const canvas = document.getElementById('canvas-desafio');
+        const ctx = canvas.getContext('2d');
 
-        // Gera cor aleatória e inicia jogo
-        btnComecar.addEventListener('click', () => {
+        // Lógica de Início
+        document.getElementById('btn-comecar').onclick = () => {
             corAlvo.r = Math.floor(Math.random() * 256).toString(16).padStart(2, '0').toUpperCase();
             corAlvo.g = Math.floor(Math.random() * 256).toString(16).padStart(2, '0').toUpperCase();
             corAlvo.b = Math.floor(Math.random() * 256).toString(16).padStart(2, '0').toUpperCase();
-
-            telaInicial.style.display = 'none';
-            telaJogo.style.display = 'flex';
-            telaJogo.style.backgroundColor = `#${corAlvo.r}${corAlvo.g}${corAlvo.b}`;
             
-            console.log("Resposta para debug:", corAlvo); // Remova isso se quiser um desafio real!
-        });
+            telas.inicial.style.display = 'none';
+            telas.jogo.style.display = 'flex';
+            telas.jogo.style.backgroundColor = `#${corAlvo.r}${corAlvo.g}${corAlvo.b}`;
+        };
 
-        btnChutar.addEventListener('click', () => {
-            if (chances <= 0) return;
-
-            const chuteR = document.getElementById('input-r').value.toUpperCase();
-            const chuteG = document.getElementById('input-g').value.toUpperCase();
-            const chuteB = document.getElementById('input-b').value.toUpperCase();
-
-            verificar('r', chuteR, corAlvo.r, 'feed-r');
-            verificar('g', chuteG, corAlvo.g, 'feed-g');
-            verificar('b', chuteB, corAlvo.b, 'feed-b');
-
+        // Chutar
+        document.getElementById('btn-chutar').onclick = () => {
+            const inputs = { r: 'input-r', g: 'input-g', b: 'input-b' };
+            ['r', 'g', 'b'].forEach(c => {
+                if (acertou[c]) return;
+                let val = document.getElementById(inputs[c]).value.toUpperCase();
+                let feed = document.getElementById(`feed-${c}`);
+                if (parseInt(val, 16) === parseInt(corAlvo[c], 16)) {
+                    acertou[c] = true;
+                    feed.innerText = "OK!";
+                    document.getElementById(inputs[c]).disabled = true;
+                    mostrarPersonagem(c);
+                } else {
+                    feed.innerText = parseInt(val, 16) > parseInt(corAlvo[c], 16) ? "MENOS" : "MAIS";
+                }
+            });
             chances--;
+            atualizarChances();
+        };
+
+        function atualizarChances() {
             document.getElementById('chances-num').innerText = chances;
+            if (chances <= 0) { alert("Fim de Jogo!"); location.reload(); }
+        }
 
-            if (acertouR && acertouG && acertouB) {
-                alert("Parabéns! Você dominou as cores!");
-                location.reload();
-            } else if (chances <= 0) {
-                alert("Game Over! A cor era: #" + corAlvo.r + corAlvo.g + corAlvo.b);
-                location.reload();
-            }
-        });
-
-        function verificar(canal, chute, alvo, idFeed) {
-            const feedElement = document.getElementById(idFeed);
-            const inputElement = document.getElementById(`input-${canal}`);
+        function mostrarPersonagem(canal) {
+            const charId = `char-${canal.toUpperCase()}`;
+            const charImg = document.getElementById(charId);
+            const balao = document.getElementById('balao');
             
-            // Se já acertou esse canal, não faz nada
-            if ((canal === 'r' && acertouR) || (canal === 'g' && acertouG) || (canal === 'b' && acertouB)) return;
+            charImg.style.display = 'block';
+            balao.style.display = 'block';
+            balao.onclick = () => iniciarDesafio(canal);
+        }
 
-            // Converter Hex para Decimal para comparar "maior/menor"
-            const valChute = parseInt(chute, 16);
-            const valAlvo = parseInt(alvo, 16);
+        // MINI-GAME LÓGICA
+        let gameLoop;
+        let tubo = { x: 0, y: 0, w: 60, h: 100 };
+        let bolinhas = [];
+        let scoreDesafio = 0;
+        let speed = 2;
 
-            if (isNaN(valChute)) {
-                feedElement.innerText = "??";
-                return;
+        function iniciarDesafio(canal) {
+            corAtualDesafio = canal;
+            telas.jogo.style.display = 'none';
+            telas.desafio.style.display = 'flex';
+            
+            canvas.width = 400;
+            canvas.height = 500;
+            scoreDesafio = 0;
+            speed = 2;
+            bolinhas = [];
+            
+            document.getElementById('titulo-desafio').innerText = `Desafio do ${canal.toUpperCase()}`;
+            document.getElementById('titulo-desafio').style.color = canal === 'r' ? 'red' : (canal === 'g' ? 'green' : 'blue');
+
+            window.onmousemove = (e) => { tubo.x = e.clientX - canvas.offsetLeft - tubo.w/2; };
+            gameLoop = setInterval(updateMiniGame, 1000/60);
+        }
+
+        function updateMiniGame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Desenhar Tubo (Buraco em cima)
+            ctx.fillStyle = corAtualDesafio === 'r' ? 'red' : (corAtualDesafio === 'g' ? 'green' : 'blue');
+            ctx.fillRect(tubo.x, canvas.height - tubo.h, tubo.w, tubo.h);
+            ctx.clearRect(tubo.x + 5, canvas.height - tubo.h, tubo.w - 10, 10); // "Buraco"
+
+            // Gerar Bolinhas
+            if (Math.random() < 0.03) {
+                bolinhas.push({ x: Math.random() * (canvas.width-20), y: -20, r: 10 });
             }
 
-            if (valChute === valAlvo) {
-                feedElement.innerText = "ACERTOU!";
-                feedElement.style.color = "green";
-                inputElement.disabled = true;
-                marcarAcerto(canal);
-            } else if (valChute > valAlvo) {
-                feedElement.innerText = "MENOS";
-                feedElement.style.color = "red";
-            } else {
-                feedElement.innerText = "MAIS";
-                feedElement.style.color = "blue";
+            // Mover e desenhar bolinhas
+            ctx.fillStyle = corAtualDesafio === 'r' ? 'cyan' : (corAtualDesafio === 'g' ? 'magenta' : 'yellow');
+            for (let i = bolinhas.length - 1; i >= 0; i--) {
+                let b = bolinhas[i];
+                b.y += speed;
+                ctx.beginPath();
+                ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Colisão com Tubo
+                if (b.y > canvas.height - tubo.h && b.x > tubo.x && b.x < tubo.x + tubo.w) {
+                    bolinhas.splice(i, 1);
+                    scoreDesafio++;
+                    speed += 0.1;
+                } else if (b.y > canvas.height) {
+                    finalizarDesafio();
+                }
             }
         }
 
-        function marcarAcerto(canal) {
-            if (canal === 'r') acertouR = true;
-            if (canal === 'g') acertouG = true;
-            if (canal === 'b') acertouB = true;
-
-            // Regra: ganhar 3 chances extras
-            chances += 3;
-            document.getElementById('chances-num').innerText = chances;
+        function finalizarDesafio() {
+            clearInterval(gameLoop);
+            alert(`Obrigado! Você coletou ${scoreDesafio} bolinhas. +${scoreDesafio} chances!`);
+            chances += scoreDesafio;
+            atualizarChances();
+            
+            // Resetar tela
+            document.getElementById('balao').style.display = 'none';
+            telas.desafio.style.display = 'none';
+            telas.jogo.style.display = 'flex';
         }
     </script>
 </body>
